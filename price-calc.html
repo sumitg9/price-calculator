@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weight & Price Two-Way Calculator | Per Kg Rate</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: #eff6ff;
+    --success: #16a34a;
+    --success-light: #f0fdf4;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --bg: #f3f4f6;
+    --card-bg: #ffffff;
+    --border: #d1d5db;
+    --border-light: #e5e7eb;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 24px 16px;
+  }
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-light);
+  }
+  .header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 16px;
+  }
+  h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Segmented Mode Switcher */
+  .mode-switch-wrapper {
+    display: flex;
+    background: #e5e7eb;
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 22px;
+    gap: 4px;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 11px 18px;
+    border: none;
+    background: transparent;
+    color: #4b5563;
+    font-size: 14.5px;
+    font-weight: 700;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .mode-btn:hover {
+    color: #111827;
+  }
+  .mode-btn.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  }
+  .mode-btn.active-price {
+    color: #059669;
+  }
+
+  /* Inputs Grid */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+  }
+  .swap-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 2px;
+  }
+  .swap-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: white;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .swap-btn:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: #93c5fd;
+    transform: rotate(180deg);
+  }
+  label {
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-bottom: 6px;
+    color: #374151;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-prefix, .input-suffix {
+    position: absolute;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 15px;
+    pointer-events: none;
+    user-select: none;
+  }
+  .input-prefix { left: 14px; }
+  .input-suffix { right: 14px; }
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    transition: all 0.15s ease;
+  }
+  .has-prefix input { padding-left: 32px; }
+  .has-suffix input { padding-right: 48px; }
+  input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  /* Unit Toggle Pills inside Input */
+  .unit-toggle {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 2px;
+    border-radius: 6px;
+    gap: 2px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .unit-btn {
+    padding: 2px 7px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .unit-btn.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  /* Result Highlight Banner */
+  .result-banner {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    color: white;
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin: 18px 0 24px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.22);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    transition: background 0.3s ease;
+  }
+  .result-banner.price-mode {
+    background: linear-gradient(135deg, #065f46 0%, #059669 100%);
+    box-shadow: 0 8px 24px rgba(5, 150, 105, 0.22);
+  }
+  .result-left {
+    flex: 1;
+    min-width: 220px;
+  }
+  .result-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: #bfdbfe;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .result-banner.price-mode .result-label {
+    color: #a7f3d0;
+  }
+  .result-main {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .result-value {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .result-secondary {
+    font-size: 18px;
+    font-weight: 600;
+    color: #dbeafe;
+    background: rgba(255, 255, 255, 0.18);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .result-banner.price-mode .result-secondary {
+    color: #d1fae5;
+  }
+  .result-detail {
+    font-size: 13.5px;
+    color: #dbeafe;
+    margin-top: 8px;
+  }
+  .result-banner.price-mode .result-detail {
+    color: #d1fae5;
+  }
+  .copy-btn {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+  .copy-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  /* Quick Presets Chips */
+  .section-label {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+  .quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .chip {
+    border: 1px solid #bfdbfe;
+    background: var(--primary-light);
+    color: #1d4ed8;
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+  }
+  .chip.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .chip-price {
+    border-color: #a7f3d0;
+    background: var(--success-light);
+    color: #065f46;
+  }
+  .chip-price:hover {
+    background: #d1fae5;
+    border-color: #6ee7b7;
+  }
+  .chip-price.active {
+    background: #059669;
+    color: white;
+    border-color: #059669;
+  }
+
+  /* Settings row */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--border-light);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .settings-row select {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    outline: none;
+    margin-left: 6px;
+    background: white;
+  }
+
+  /* Reference Table Section */
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 22px 0 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .table-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    color: #111827;
+  }
+  .table-custom-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .table-custom-row input {
+    max-width: 240px;
+    padding: 9px 12px;
+    font-size: 14px;
+  }
+  .btn-sm {
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-secondary {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { background: #f9fafb; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border-light);
+    text-align: right;
+    font-size: 14px;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  tr.active-row {
+    background: #eff6ff;
+    font-weight: 600;
+  }
+  tr.active-row-price {
+    background: #f0fdf4;
+    font-weight: 600;
+  }
+  tr:last-child td { border-bottom: none; }
+  .remove-row-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+  .remove-row-btn:hover {
+    background: #fee2e2;
+  }
+  .empty {
+    text-align: center !important;
+    color: #9ca3af;
+    padding: 24px !important;
+  }
+
+  /* Formula Card */
+  .formula-footer {
+    margin-top: 24px;
+    padding: 14px 18px;
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .formula-footer code {
+    background: #e2e8f0;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12.5px;
+    color: #1e293b;
+    font-weight: 600;
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 12px 8px; }
+    .card { padding: 20px 16px; }
+    .calc-grid { grid-template-columns: 1fr; gap: 12px; }
+    .swap-col { display: none; }
+    .result-value { font-size: 30px; }
+    .table-custom-row input { max-width: 100%; flex: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <!-- Header -->
+    <div class="header">
+      <h1 id="pageTitle"><span class="icon">⚖️</span> Weight & Price Two-Way Calculator</h1>
+      <div class="subtitle" id="pageSubtitle">Switch between entering weight (grams/kg) or budget (₹) to get instant calculations.</div>
+    </div>
+
+    <!-- Segmented Mode Switcher -->
+    <div class="mode-switch-wrapper" role="tablist">
+      <button type="button" class="mode-btn active" id="btnModeWeight" onclick="switchMode('weight-to-price')" role="tab">
+        <span>⚖️</span>
+        <span>Enter Weight → Get Price</span>
+      </button>
+      <button type="button" class="mode-btn" id="btnModePrice" onclick="switchMode('price-to-weight')" role="tab">
+        <span>💰</span>
+        <span>Enter Price → Get Weight</span>
+      </button>
+    </div>
+
+    <!-- Inputs -->
+    <div class="calc-grid">
+      <!-- Field 1: Rate per kg -->
+      <div class="field">
+        <label for="rate">Product Price (Rate per kg)</label>
+        <div class="input-wrapper has-prefix">
+          <span class="input-prefix">₹</span>
+          <input id="rate" type="number" min="0" step="any" value="150" placeholder="e.g. 150">
+        </div>
+      </div>
+
+      <!-- Swap Icon Button -->
+      <div class="swap-col">
+        <button type="button" class="swap-btn" onclick="toggleMode()" title="Toggle between Weight and Price input">
+          ⇄
+        </button>
+      </div>
+
+      <!-- Field 2: Dynamic Variable Input (Weight OR Price) -->
+      <div class="field">
+        <label id="variableLabel" for="variableInput">
+          <span id="variableLabelText">Weight in Grams (gm)</span>
+          <span class="unit-toggle" id="weightUnitToggle">
+            <button type="button" class="unit-btn active" id="unitGm" onclick="setWeightUnit('gm')">gm</button>
+            <button type="button" class="unit-btn" id="unitKg" onclick="setWeightUnit('kg')">kg</button>
+          </span>
+        </label>
+        <div class="input-wrapper has-suffix" id="variableInputWrapper">
+          <span class="input-prefix" id="variablePrefix" style="display:none;">₹</span>
+          <input id="variableInput" type="number" min="0" step="any" value="250" placeholder="e.g. 250">
+          <span class="input-suffix" id="variableSuffix">gm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Presets Chips -->
+    <div class="section-label" id="quickChipsLabel">Quick select weight:</div>
+    <div class="quick-chips" id="quickChips">
+      <!-- Rendered dynamically by JS -->
+    </div>
+
+    <!-- Live Result Highlight Banner -->
+    <div class="result-banner" id="resultBanner">
+      <div class="result-left">
+        <div class="result-label" id="resultLabel">Calculated Total Price</div>
+        <div class="result-main">
+          <div class="result-value" id="resultPrimary">₹37.50</div>
+          <div class="result-secondary" id="resultSecondary" style="display:none;"></div>
+        </div>
+        <div class="result-detail" id="resultDetail">For 250 g @ ₹150.00 / kg · (₹0.150 per gram)</div>
+      </div>
+      <button type="button" class="copy-btn" id="copyBtn" onclick="copyResult()">📋 Copy Result</button>
+    </div>
+
+    <!-- Settings Row -->
+    <div class="settings-row">
+      <div>
+        <span>Rate per gram: <strong id="perGramRate">₹0.150</strong></span>
+        <span style="margin-left: 12px; color: var(--border);">|</span>
+        <span style="margin-left: 12px;">Rate per 100g: <strong id="perHundredGramRate">₹15.00</strong></span>
+      </div>
+      <div>
+        <label for="precisionSelect" style="display:inline;font-weight:normal;color:inherit;">Decimal places:</label>
+        <select id="precisionSelect" onchange="render()">
+          <option value="0">0 (e.g. ₹38 / 333g)</option>
+          <option value="1">1 (e.g. ₹37.5 / 333.3g)</option>
+          <option value="2" selected>2 (e.g. ₹37.50 / 333.33g)</option>
+          <option value="3">3 (e.g. ₹37.500 / 333.333g)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Reference Table Chart -->
+    <div class="table-header">
+      <h2 id="tableTitle">Price Chart for Different Quantities</h2>
+      <button type="button" class="btn-sm btn-secondary" onclick="resetTableDefaults()">Reset Defaults</button>
+    </div>
+
+    <div class="table-custom-row">
+      <div class="input-wrapper has-suffix" id="customInputWrapper" style="flex:1;max-width:260px;">
+        <span class="input-prefix" id="customPrefix" style="display:none;">₹</span>
+        <input id="customTableInput" type="number" min="0.01" step="any" placeholder="Add custom gm (e.g. 350)">
+        <span class="input-suffix" id="customSuffix">gm</span>
+      </div>
+      <button type="button" class="btn-sm btn-primary" id="addChartBtn" onclick="addCustomTableEntry()">Add to Chart</button>
+      <button type="button" class="btn-sm btn-secondary" onclick="clearTable()">Clear Chart</button>
+    </div>
+
+    <table>
+      <thead id="tableHead">
+        <!-- Rendered by JS -->
+      </thead>
+      <tbody id="tableBody">
+        <!-- Rendered by JS -->
+      </tbody>
+    </table>
+
+    <!-- Formula Footer -->
+    <div class="formula-footer" id="formulaFooter">
+      <div id="formulaText"><strong>Formula:</strong> <code>Price (₹) = (Price per kg ÷ 1000) × Weight in Grams</code></div>
+      <div>1 kg = 1000 grams</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Modes: 'weight-to-price' | 'price-to-weight'
+  let currentMode = 'weight-to-price';
+  let weightUnit = 'gm'; // 'gm' | 'kg'
+
+  // Default Presets
+  const defaultWeightsGm = [25, 50, 100, 200, 250, 400, 500, 750, 1000];
+  const defaultPricesRs = [10, 20, 30, 50, 75, 100, 150, 200, 500];
+
+  let customWeights = [...defaultWeightsGm];
+  let customPrices = [...defaultPricesRs];
+
+  // DOM Elements
+  const rateEl = document.getElementById('rate');
+  const variableInput = document.getElementById('variableInput');
+  const variableInputWrapper = document.getElementById('variableInputWrapper');
+  const variableLabelText = document.getElementById('variableLabelText');
+  const variablePrefix = document.getElementById('variablePrefix');
+  const variableSuffix = document.getElementById('variableSuffix');
+  const weightUnitToggle = document.getElementById('weightUnitToggle');
+  const unitGmBtn = document.getElementById('unitGm');
+  const unitKgBtn = document.getElementById('unitKg');
+
+  const btnModeWeight = document.getElementById('btnModeWeight');
+  const btnModePrice = document.getElementById('btnModePrice');
+  const quickChips = document.getElementById('quickChips');
+  const quickChipsLabel = document.getElementById('quickChipsLabel');
+
+  const resultBanner = document.getElementById('resultBanner');
+  const resultLabel = document.getElementById('resultLabel');
+  const resultPrimary = document.getElementById('resultPrimary');
+  const resultSecondary = document.getElementById('resultSecondary');
+  const resultDetail = document.getElementById('resultDetail');
+  const copyBtn = document.getElementById('copyBtn');
+
+  const perGramRateEl = document.getElementById('perGramRate');
+  const perHundredGramRateEl = document.getElementById('perHundredGramRate');
+  const precisionEl = document.getElementById('precisionSelect');
+
+  const tableTitle = document.getElementById('tableTitle');
+  const tableHead = document.getElementById('tableHead');
+  const tableBody = document.getElementById('tableBody');
+  const customTableInput = document.getElementById('customTableInput');
+  const customPrefix = document.getElementById('customPrefix');
+  const customSuffix = document.getElementById('customSuffix');
+  const addChartBtn = document.getElementById('addChartBtn');
+  const formulaText = document.getElementById('formulaText');
+
+  function formatNumber(val, decimals = 2) {
+    if (isNaN(val) || val === null || val === undefined) return '0.00';
+    return Number(val).toLocaleString('en-IN', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  }
+
+  function formatGramsClean(val, decimals = 2) {
+    if (isNaN(val)) return '0';
+    return Number(val).toLocaleString('en-IN', {
+      maximumFractionDigits: decimals
+    });
+  }
+
+  function switchMode(newMode) {
+    if (currentMode === newMode) return;
+    currentMode = newMode;
+
+    const rate = parseFloat(rateEl.value) || 0;
+    const currentVal = parseFloat(variableInput.value) || 0;
+
+    if (currentMode === 'weight-to-price') {
+      // Switched to Weight -> Price
+      btnModeWeight.classList.add('active');
+      btnModeWeight.classList.remove('active-price');
+      btnModePrice.classList.remove('active');
+      btnModePrice.classList.remove('active-price');
+      resultBanner.classList.remove('price-mode');
+
+      // Update Input layout
+      variableLabelText.textContent = weightUnit === 'gm' ? 'Weight in Grams (gm)' : 'Weight in Kilograms (kg)';
+      weightUnitToggle.style.display = 'inline-flex';
+      variablePrefix.style.display = 'none';
+      variableSuffix.style.display = 'block';
+      variableSuffix.textContent = weightUnit;
+      variableInputWrapper.classList.add('has-suffix');
+      variableInputWrapper.classList.remove('has-prefix');
+
+      // Seamless conversion: if user had entered ₹50, convert to grams (e.g. 333.33g)
+      if (rate > 0 && currentVal > 0) {
+        const calculatedGm = (currentVal / rate) * 1000;
+        variableInput.value = weightUnit === 'gm' ? parseFloat(calculatedGm.toFixed(2)) : parseFloat((calculatedGm / 1000).toFixed(4));
+      } else {
+        variableInput.value = weightUnit === 'gm' ? 250 : 0.25;
+      }
+      variableInput.placeholder = weightUnit === 'gm' ? 'e.g. 250' : 'e.g. 0.25';
+
+      // Table custom input
+      customPrefix.style.display = 'none';
+      customSuffix.style.display = 'block';
+      customSuffix.textContent = 'gm';
+      customTableInput.placeholder = 'Add custom gm (e.g. 350)';
+      addChartBtn.textContent = 'Add to Chart';
+      tableTitle.textContent = 'Price Chart for Different Quantities';
+
+      formulaText.innerHTML = '<strong>Formula:</strong> <code>Price (₹) = (Price per kg ÷ 1000) × Weight in Grams</code>';
+    } else {
+      // Switched to Price -> Weight
+      btnModePrice.classList.add('active');
+      btnModePrice.classList.add('active-price');
+      btnModeWeight.classList.remove('active');
+      resultBanner.classList.add('price-mode');
+
+      // Update Input layout
+      variableLabelText.textContent = 'Desired Budget / Price';
+      weightUnitToggle.style.display = 'none';
+      variablePrefix.style.display = 'block';
+      variableSuffix.style.display = 'none';
+      variableInputWrapper.classList.remove('has-suffix');
+      variableInputWrapper.classList.add('has-prefix');
+
+      // Seamless conversion: if user had 250g @ 150/kg, prefill ₹37.50
+      if (rate > 0 && currentVal > 0) {
+        const gramsVal = weightUnit === 'gm' ? currentVal : currentVal * 1000;
+        const calculatedPrice = (rate / 1000) * gramsVal;
+        variableInput.value = parseFloat(calculatedPrice.toFixed(2));
+      } else {
+        variableInput.value = 50;
+      }
+      variableInput.placeholder = 'e.g. 50';
+
+      // Table custom input
+      customPrefix.style.display = 'block';
+      customSuffix.style.display = 'none';
+      customTableInput.placeholder = 'Add custom budget ₹ (e.g. 75)';
+      addChartBtn.textContent = 'Add to Chart';
+      tableTitle.textContent = 'Quantity Chart for Different Budgets';
+
+      formulaText.innerHTML = '<strong>Formula:</strong> <code>Weight in Grams = (Amount in ₹ ÷ Price per kg) × 1000</code>';
+    }
+
+    render();
+  }
+
+  function toggleMode() {
+    switchMode(currentMode === 'weight-to-price' ? 'price-to-weight' : 'weight-to-price');
+  }
+
+  function setWeightUnit(unit) {
+    if (weightUnit === unit) return;
+    const oldUnit = weightUnit;
+    weightUnit = unit;
+
+    unitGmBtn.classList.toggle('active', unit === 'gm');
+    unitKgBtn.classList.toggle('active', unit === 'kg');
+    variableSuffix.textContent = unit;
+    variableLabelText.textContent = unit === 'gm' ? 'Weight in Grams (gm)' : 'Weight in Kilograms (kg)';
+
+    const val = parseFloat(variableInput.value);
+    if (!isNaN(val) && val > 0) {
+      if (oldUnit === 'gm' && unit === 'kg') {
+        variableInput.value = parseFloat((val / 1000).toFixed(4));
+      } else if (oldUnit === 'kg' && unit === 'gm') {
+        variableInput.value = parseFloat((val * 1000).toFixed(2));
+      }
+    }
+    render();
+  }
+
+  function setVariableValue(val) {
+    variableInput.value = val;
+    render();
+  }
+
+  function renderQuickChips(activeVal) {
+    if (currentMode === 'weight-to-price') {
+      quickChipsLabel.textContent = 'Quick select weight:';
+      quickChips.innerHTML = defaultWeightsGm.map(gm => {
+        let label = `${gm} g`;
+        if (gm === 500) label = '500 g (½ kg)';
+        else if (gm === 1000) label = '1000 g (1 kg)';
+
+        const targetVal = weightUnit === 'gm' ? gm : gm / 1000;
+        const isActive = Math.abs(targetVal - activeVal) < 0.0001;
+
+        return `<button type="button" class="chip ${isActive ? 'active' : ''}" onclick="setVariableValue(${targetVal})">${label}</button>`;
+      }).join('');
+    } else {
+      quickChipsLabel.textContent = 'Quick select budget / price:';
+      quickChips.innerHTML = defaultPricesRs.map(rs => {
+        let label = `₹${rs}`;
+        const rate = parseFloat(rateEl.value);
+        if (rate > 0 && rs === rate) label = `₹${rs} (1 kg)`;
+        else if (rate > 0 && rs === rate / 2) label = `₹${rs} (½ kg)`;
+
+        const isActive = Math.abs(rs - activeVal) < 0.001;
+        return `<button type="button" class="chip chip-price ${isActive ? 'active' : ''}" onclick="setVariableValue(${rs})">${label}</button>`;
+      }).join('');
+    }
+  }
+
+  function render() {
+    const rate = parseFloat(rateEl.value);
+    const inputVal = parseFloat(variableInput.value);
+    const precision = parseInt(precisionEl.value, 10);
+
+    renderQuickChips(inputVal);
+
+    if (isNaN(rate) || rate <= 0) {
+      resultPrimary.textContent = currentMode === 'weight-to-price' ? '₹0.00' : '0 gm';
+      resultSecondary.style.display = 'none';
+      resultDetail.textContent = 'Please enter a valid product price per kg above';
+      perGramRateEl.textContent = '₹0.000';
+      perHundredGramRateEl.textContent = '₹0.00';
+      renderTable(0, precision, 0);
+      return;
+    }
+
+    const pricePerGram = rate / 1000;
+    perGramRateEl.textContent = `₹${pricePerGram.toFixed(3)}`;
+    perHundredGramRateEl.textContent = `₹${(pricePerGram * 100).toFixed(2)}`;
+
+    if (isNaN(inputVal) || inputVal <= 0) {
+      if (currentMode === 'weight-to-price') {
+        resultLabel.textContent = 'Calculated Total Price';
+        resultPrimary.textContent = '₹0.00';
+        resultSecondary.style.display = 'none';
+        resultDetail.textContent = `Rate: ₹${formatNumber(rate, 2)} / kg · Enter weight to calculate price`;
+      } else {
+        resultLabel.textContent = 'Calculated Quantity / Weight';
+        resultPrimary.textContent = '0 gm';
+        resultSecondary.style.display = 'none';
+        resultDetail.textContent = `Rate: ₹${formatNumber(rate, 2)} / kg · Enter budget in ₹ to calculate weight`;
+      }
+      renderTable(rate, precision, 0);
+      return;
+    }
+
+    if (currentMode === 'weight-to-price') {
+      // Calculate Price
+      const grams = weightUnit === 'gm' ? inputVal : inputVal * 1000;
+      const totalPrice = pricePerGram * grams;
+      const kgEquivalent = grams / 1000;
+
+      resultLabel.textContent = 'Calculated Total Price';
+      resultPrimary.textContent = `₹${formatNumber(totalPrice, precision)}`;
+      resultSecondary.style.display = 'none';
+      resultDetail.textContent = `For ${formatGramsClean(grams, precision)} g (${kgEquivalent.toFixed(kgEquivalent >= 1 ? 2 : 3)} kg) @ ₹${formatNumber(rate, 2)} / kg · (₹${pricePerGram.toFixed(3)}/g)`;
+
+      renderTable(rate, precision, grams);
+    } else {
+      // Calculate Weight from Price
+      const userPrice = inputVal;
+      const calculatedGrams = (userPrice / rate) * 1000;
+      const calculatedKg = userPrice / rate;
+
+      resultLabel.textContent = 'Calculated Quantity / Weight';
+      resultPrimary.textContent = `${formatGramsClean(calculatedGrams, precision)} gm`;
+      resultSecondary.style.display = 'inline-block';
+      resultSecondary.textContent = `${calculatedKg.toFixed(calculatedKg >= 1 ? 2 : 3)} kg`;
+      resultDetail.textContent = `You get ${formatGramsClean(calculatedGrams, precision)} g (${calculatedKg.toFixed(3)} kg) for ₹${formatNumber(userPrice, 2)} @ ₹${formatNumber(rate, 2)} / kg`;
+
+      renderTable(rate, precision, userPrice);
+    }
+  }
+
+  function renderTable(rate, precision, currentActiveVal) {
+    if (currentMode === 'weight-to-price') {
+      tableHead.innerHTML = `
+        <tr>
+          <th>Quantity (gm)</th>
+          <th>In Kilograms</th>
+          <th>Calculated Price</th>
+          <th style="width:40px;text-align:center;">Action</th>
+        </tr>
+      `;
+
+      if (!customWeights.length) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="empty">No quantities in chart. Click "Reset Defaults" or add custom gm above.</td></tr>';
+        return;
+      }
+
+      const uniqueSorted = [...new Set(customWeights)].sort((a, b) => a - b);
+      tableBody.innerHTML = uniqueSorted.map(gm => {
+        const price = rate > 0 ? (rate / 1000) * gm : 0;
+        const kg = gm / 1000;
+        const targetVal = weightUnit === 'gm' ? gm : gm / 1000;
+        const isCurrent = Math.abs(gm - currentActiveVal) < 0.001;
+
+        return `
+          <tr class="${isCurrent ? 'active-row' : ''}" onclick="setVariableValue(${targetVal})" style="cursor:pointer;" title="Click to calculate for ${gm}g">
+            <td><strong>${formatGramsClean(gm, 0)} g</strong> ${gm === 1000 ? '<small style="color:#2563eb;">(1 kg)</small>' : (gm === 500 ? '<small style="color:#2563eb;">(½ kg)</small>' : '')}</td>
+            <td>${kg >= 1 ? kg.toFixed(2) : kg.toFixed(3)} kg</td>
+            <td><strong style="color:${isCurrent ? '#1d4ed8' : 'inherit'};">₹${formatNumber(price, precision)}</strong></td>
+            <td style="text-align:center;" onclick="event.stopPropagation();">
+              <button class="remove-row-btn" title="Remove row" onclick="removeTableEntry(${gm})">&times;</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } else {
+      tableHead.innerHTML = `
+        <tr>
+          <th>Budget / Price (₹)</th>
+          <th>Quantity in Grams</th>
+          <th>In Kilograms</th>
+          <th style="width:40px;text-align:center;">Action</th>
+        </tr>
+      `;
+
+      if (!customPrices.length) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="empty">No prices in chart. Click "Reset Defaults" or add custom price above.</td></tr>';
+        return;
+      }
+
+      const uniqueSorted = [...new Set(customPrices)].sort((a, b) => a - b);
+      tableBody.innerHTML = uniqueSorted.map(rs => {
+        const grams = rate > 0 ? (rs / rate) * 1000 : 0;
+        const kg = rate > 0 ? rs / rate : 0;
+        const isCurrent = Math.abs(rs - currentActiveVal) < 0.001;
+
+        return `
+          <tr class="${isCurrent ? 'active-row-price' : ''}" onclick="setVariableValue(${rs})" style="cursor:pointer;" title="Click to calculate for ₹${rs}">
+            <td><strong>₹${formatNumber(rs, 0)}</strong> ${rate > 0 && rs === rate ? '<small style="color:#059669;">(1 kg)</small>' : (rate > 0 && rs === rate/2 ? '<small style="color:#059669;">(½ kg)</small>' : '')}</td>
+            <td><strong style="color:${isCurrent ? '#059669' : 'inherit'};">${formatGramsClean(grams, precision)} gm</strong></td>
+            <td>${kg.toFixed(kg >= 1 ? 2 : 3)} kg</td>
+            <td style="text-align:center;" onclick="event.stopPropagation();">
+              <button class="remove-row-btn" title="Remove row" onclick="removeTableEntry(${rs})">&times;</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+
+  function addCustomTableEntry() {
+    const val = parseFloat(customTableInput.value);
+    if (!val || val <= 0) return;
+
+    if (currentMode === 'weight-to-price') {
+      if (!customWeights.includes(val)) customWeights.push(val);
+      setVariableValue(weightUnit === 'gm' ? val : val / 1000);
+    } else {
+      if (!customPrices.includes(val)) customPrices.push(val);
+      setVariableValue(val);
+    }
+    customTableInput.value = '';
+    render();
+  }
+
+  function removeTableEntry(val) {
+    if (currentMode === 'weight-to-price') {
+      customWeights = customWeights.filter(w => w !== val);
+    } else {
+      customPrices = customPrices.filter(p => p !== val);
+    }
+    render();
+  }
+
+  function resetTableDefaults() {
+    if (currentMode === 'weight-to-price') {
+      customWeights = [...defaultWeightsGm];
+    } else {
+      customPrices = [...defaultPricesRs];
+    }
+    render();
+  }
+
+  function clearTable() {
+    if (currentMode === 'weight-to-price') customWeights = [];
+    else customPrices = [];
+    render();
+  }
+
+  function copyResult() {
+    let textToCopy = '';
+    if (currentMode === 'weight-to-price') {
+      textToCopy = resultPrimary.textContent;
+    } else {
+      textToCopy = `${resultPrimary.textContent} (${resultSecondary.textContent})`;
+    }
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      copyBtn.textContent = '✓ Copied!';
+      setTimeout(() => { copyBtn.textContent = '📋 Copy Result'; }, 1800);
+    }).catch(() => {
+      copyBtn.textContent = '✓ Copied!';
+      setTimeout(() => { copyBtn.textContent = '📋 Copy Result'; }, 1800);
+    });
+  }
+
+  // Reactive listeners
+  rateEl.addEventListener('input', render);
+  variableInput.addEventListener('input', render);
+
+  customTableInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addCustomTableEntry();
+  });
+
+  // Initial Calculation
+  render();
+</script>
+</body>
+</html>
